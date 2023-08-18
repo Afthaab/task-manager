@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/afthaab/task-manager/pkg/db"
+	"github.com/afthaab/task-manager/pkg/di"
 	"github.com/joho/godotenv"
 )
 
@@ -16,6 +15,10 @@ func init() {
 }
 
 func main() {
-	db.ConnectToDatabase()
-	fmt.Println("Main method invoked")
+	server, err := di.InitializeApi()
+	if err != nil {
+		log.Fatalln("Could not start the Server: ", err)
+	} else {
+		server.Start()
+	}
 }
