@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/afthaab/task-manager/pkg/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,6 +14,9 @@ func ConnectToDatabase() (*gorm.DB, error) {
 	DB, dbErr := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
+
+	DB.AutoMigrate(&domain.User{})
+
 	return DB, dbErr
 
 }

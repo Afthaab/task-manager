@@ -16,6 +16,16 @@ func NewServerHTTP(taskHandler *handler.TaskHanlder) *ServerHTTP {
 
 	engine.Use(gin.Logger())
 
+	taskManager := engine.Group("/taskmanager")
+	{
+		user := taskManager.Group("/user")
+		{
+			user.POST("/signup", taskHandler.Signup)
+			user.POST("/verify", taskHandler.UserVerification)
+		}
+
+	}
+
 	return &ServerHTTP{
 		engine: engine,
 	}
