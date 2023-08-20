@@ -22,6 +22,7 @@ func NewServerHTTP(taskHandler *handler.TaskHanlder) *ServerHTTP {
 		{
 			user.POST("/signup", taskHandler.Signup)
 			user.POST("/verify", taskHandler.UserVerification)
+			user.POST("/signin", taskHandler.SignIn)
 		}
 
 	}
