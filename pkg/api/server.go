@@ -30,6 +30,8 @@ func NewServerHTTP(taskHandler *handler.TaskHanlder) *ServerHTTP {
 		{
 			task.GET("/view/all", taskHandler.ViewAllTask)
 			task.POST("/add", taskHandler.AddTask)
+			task.PUT("/edit", taskHandler.EditTask)
+			task.DELETE("/delete", taskHandler.DeleteTask)
 		}
 
 	}

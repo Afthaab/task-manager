@@ -15,4 +15,6 @@ type TaskRepository interface {
 	// Task Management
 	GetAllTasks(userid string) ([]domain.Task, int64)
 	AddTask(taskData domain.Task) (domain.Task, int64)
+	EditTask(userid string, taskData domain.Task) int64
+	DeleteTask(userid string, taskid string) int64
 }

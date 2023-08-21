@@ -128,7 +128,7 @@ func (h *TaskHanlder) AddTask(c *gin.Context) {
 
 	//setting the response map
 	responseMap := make(map[string]uint)
-	responseMap["task"] = taskData.Taskid
+	responseMap["taskid"] = taskData.Taskid
 
 	if err != nil {
 		utility.FailureResponse(c, status, "Failed to add the Task", err)
@@ -160,6 +160,47 @@ func (h *TaskHanlder) ViewAllTask(c *gin.Context) {
 			"Message": "View all tasks successfull",
 			"Data":    responseMap,
 		})
+	}
+}
+
+func (h *TaskHanlder) EditTask(c *gin.Context) {
+	userid := c.GetString("userid")
+	taskData := domain.Task{}
+	err := c.Bind(&taskData)
+	if err != nil {
+		utility.JsonValidationFailure(c, err)
+		return
+	}
+	status, err := h.taskUseCase.EditTask(userid, taskData)
+
+	//setting the response map
+	uid := strconv.FormatUint(uint64(taskData.Taskid), 10)
+	responseMap := make(map[string]string)
+	responseMap["taskid"] = uid
+
+	if err != nil {
+		utility.FailureResponse(c, status, "Could not edit the task details", err)
+		return
+	} else {
+		utility.SuccessResponse(c, status, "Successfully edited the task", responseMap)
+	}
+}
+
+func (h *TaskHanlder) DeleteTask(c *gin.Context) {
+	userid := c.GetString("userid")
+	taskid := c.Query("taskid")
+
+	status, err := h.taskUseCase.DeleteTask(userid, taskid)
+
+	//setting the response map
+	responseMap := make(map[string]string)
+	responseMap["taskid"] = taskid
+
+	if err != nil {
+		utility.FailureResponse(c, status, "Could not delete the task", err)
+		return
+	} else {
+		utility.SuccessResponse(c, status, "Successfully deleted the task", responseMap)
 	}
 }
 

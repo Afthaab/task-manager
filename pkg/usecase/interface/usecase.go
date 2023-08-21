@@ -18,4 +18,6 @@ type TaskUseCase interface {
 	// Task Management
 	ViewAllTask(userid string) ([]domain.Task, int, error)
 	AddTask(userid string, taskData domain.Task) (domain.Task, int, error)
+	EditTask(userid string, taskData domain.Task) (int, error)
+	DeleteTask(userid string, taskid string) (int, error)
 }

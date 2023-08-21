@@ -23,6 +23,16 @@ func (r *TaskDatabase) GetAllTasks(userid string) ([]domain.Task, int64) {
 	return taskDatas, result.RowsAffected
 }
 
+func (r *TaskDatabase) EditTask(userid string, taskData domain.Task) int64 {
+	result := r.db.Exec("update tasks set taskname = ?, description = ?, duedate = ?, duetime = ? where taskid = ? and uid = ?", taskData.Taskname, taskData.Description, taskData.Duedate, taskData.Duetime, taskData.Taskid, userid)
+	return result.RowsAffected
+}
+
+func (r *TaskDatabase) DeleteTask(userid string, taskid string) int64 {
+	result := r.db.Exec("delete from tasks where taskid = ? and uid = ?", taskid, userid)
+	return result.RowsAffected
+}
+
 //////////////////////////////////// ---- USER AUTHENTICATION ---- ////////////////////////////////////
 
 func (r *TaskDatabase) FindTheUserById(userid uint) int64 {

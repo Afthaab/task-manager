@@ -158,6 +158,21 @@ func (u *TaskUseCase) AddTask(userid string, taskData domain.Task) (domain.Task,
 	}
 	return taskData, http.StatusOK, nil
 }
+func (u *TaskUseCase) EditTask(userid string, taskData domain.Task) (int, error) {
+	rows := u.taskRepo.EditTask(userid, taskData)
+	if rows == 0 {
+		return http.StatusNotFound, errors.New("Could not update the task in the database")
+	}
+	return http.StatusOK, nil
+}
+
+func (u *TaskUseCase) DeleteTask(userid string, taskid string) (int, error) {
+	rows := u.taskRepo.DeleteTask(userid, taskid)
+	if rows == 0 {
+		return http.StatusInternalServerError, errors.New("Could not delete the task")
+	}
+	return http.StatusOK, nil
+}
 
 func NewTaskUseCase(TaskRepo interfaces.TaskRepository) services.TaskUseCase {
 	return &TaskUseCase{
