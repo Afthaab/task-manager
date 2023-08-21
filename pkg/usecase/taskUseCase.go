@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/afthaab/task-manager/pkg/domain"
@@ -17,9 +18,34 @@ type TaskUseCase struct {
 	taskRepo interfaces.TaskRepository
 }
 
+//////////////////////////////////// ---- MIDDLEWARE ---- ////////////////////////////////////
+
+func (r *TaskUseCase) ValidateTheJwtUser(userid uint) (int, error) {
+	rows := r.taskRepo.FindTheUserById(userid)
+	if rows == 0 {
+		return http.StatusUnauthorized, errors.New("User not found in the database")
+	} else {
+		return http.StatusOK, nil
+	}
+}
+
+func (u *TaskUseCase) VerifyToken(token string) (bool, *domain.JWTClaims) {
+	claims := &domain.JWTClaims{}
+	tkn, err := utility.GetTokenFromString(token, claims)
+	if err != nil {
+		return false, claims
+	}
+	if tkn.Valid {
+		if err := claims.Valid(); err != nil {
+			return false, claims
+		}
+	}
+	return true, claims
+}
+
 func (u *TaskUseCase) GenerateAccessToken(userData domain.User, role string) (string, error) {
 	claims := domain.JWTClaims{
-		Userid: userData.Id,
+		Userid: userData.Userid,
 		Role:   role,
 		Source: "AccessToken",
 		StandardClaims: jwt.StandardClaims{
@@ -32,6 +58,8 @@ func (u *TaskUseCase) GenerateAccessToken(userData domain.User, role string) (st
 
 	return accessToken, err
 }
+
+//////////////////////////////////// ---- USER AUTHENTICATION ---- ////////////////////////////////////
 
 func (u *TaskUseCase) Signup(userData domain.User) (string, int, error) {
 	err := utility.ValidateUser(userData)
@@ -72,19 +100,19 @@ func (u *TaskUseCase) Signup(userData domain.User) (string, int, error) {
 	return userData.Email, http.StatusOK, nil
 }
 
-func (u *TaskUseCase) UserVerification(userData domain.User) (uint64, int, error) {
+func (u *TaskUseCase) UserVerification(userData domain.User) (uint, int, error) {
 	// searching user with the otp and email
 	userData, rows := u.taskRepo.VerifyOtp(userData)
 	if rows == 0 {
-		return userData.Id, http.StatusNotFound, errors.New("Provided OTP is wrong")
+		return userData.Userid, http.StatusNotFound, errors.New("Provided OTP is wrong")
 	}
 
 	rows = u.taskRepo.VerifyTheUser(userData)
 	if rows == 0 {
-		return userData.Id, http.StatusInternalServerError, errors.New("Could not verify the user")
+		return userData.Userid, http.StatusInternalServerError, errors.New("Could not verify the user")
 	}
 
-	return userData.Id, http.StatusOK, nil
+	return userData.Userid, http.StatusOK, nil
 
 }
 func (u *TaskUseCase) SignIn(user domain.User) (domain.User, int, error) {
@@ -109,6 +137,26 @@ func (u *TaskUseCase) SignIn(user domain.User) (domain.User, int, error) {
 	}
 
 	return userData, http.StatusOK, nil
+}
+
+//////////////////////////////////// ---- TASK MANAGEMENT ---- ////////////////////////////////////
+
+func (u *TaskUseCase) ViewAllTask(userid string) ([]domain.Task, int, error) {
+	taskDatas, rows := u.taskRepo.GetAllTasks(userid)
+	if rows == 0 {
+		return taskDatas, http.StatusNotFound, errors.New("Could not find the user with his tasks")
+	}
+	return taskDatas, http.StatusOK, nil
+}
+
+func (u *TaskUseCase) AddTask(userid string, taskData domain.Task) (domain.Task, int, error) {
+	uid, _ := strconv.ParseUint(userid, 10, 0)
+	taskData.Uid = uint(uid)
+	taskData, rows := u.taskRepo.AddTask(taskData)
+	if rows == 0 {
+		return taskData, http.StatusInternalServerError, errors.New("Could not add the task to the Database")
+	}
+	return taskData, http.StatusOK, nil
 }
 
 func NewTaskUseCase(TaskRepo interfaces.TaskRepository) services.TaskUseCase {

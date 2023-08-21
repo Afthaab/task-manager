@@ -10,6 +10,26 @@ type TaskDatabase struct {
 	db *gorm.DB
 }
 
+//////////////////////////////////// ---- TASK MANAGEMENT ---- ////////////////////////////////////
+
+func (r *TaskDatabase) AddTask(taskData domain.Task) (domain.Task, int64) {
+	result := r.db.Create(&taskData)
+	return taskData, result.RowsAffected
+}
+
+func (r *TaskDatabase) GetAllTasks(userid string) ([]domain.Task, int64) {
+	taskDatas := []domain.Task{}
+	result := r.db.Raw("select * from tasks where uid = ?", userid).Scan(&taskDatas)
+	return taskDatas, result.RowsAffected
+}
+
+//////////////////////////////////// ---- USER AUTHENTICATION ---- ////////////////////////////////////
+
+func (r *TaskDatabase) FindTheUserById(userid uint) int64 {
+	result := r.db.Raw("select * from users where userid = ?", userid).Scan(&domain.User{})
+	return result.RowsAffected
+}
+
 func (r *TaskDatabase) VerifyTheUser(userData domain.User) int64 {
 	result := r.db.Exec("update users set isverified = true where email LIKE ? AND otp = ?", userData.Email, userData.Otp)
 	return result.RowsAffected

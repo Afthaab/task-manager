@@ -25,6 +25,13 @@ func NewServerHTTP(taskHandler *handler.TaskHanlder) *ServerHTTP {
 			user.POST("/signin", taskHandler.SignIn)
 		}
 
+		task := taskManager.Group("/task")
+		task.Use(taskHandler.ValidateJWT)
+		{
+			task.GET("/view/all", taskHandler.ViewAllTask)
+			task.POST("/add", taskHandler.AddTask)
+		}
+
 	}
 
 	return &ServerHTTP{
